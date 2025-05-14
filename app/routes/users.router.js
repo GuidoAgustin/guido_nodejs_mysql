@@ -16,6 +16,12 @@ router.put(
   (req, res, next) => controllers.usersController.updateProfile(req, res, next),
 );
 
+router.post(
+  '/registro',
+  [],
+  (req, res, next) => controllers.usersController.registro(req, res, next),
+);
+
 module.exports = {
   basePath: '/',
   router,
