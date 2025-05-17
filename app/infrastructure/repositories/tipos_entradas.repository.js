@@ -1,58 +1,76 @@
-const { Op } = require('sequelize');const CustomError = require('../../domain/exceptions/CustomError');
+const CustomError = require("../../domain/exceptions/CustomError");
 
 class TiposEntradasRepository {
   constructor(models) {
     this.models = models;
   }
 
-  async list() {
-    const tipos_entradas = await this.models.tipos_entrada.findAll({
-      order: [['name', 'asc']],
+  /**
+   * Si id_evento está presente, filtra por ese evento;
+   * si no, devuelve todos los tipos.
+   */
+  async list({ id_evento = null } = {}) {
+    const where = id_evento ? { id_evento } : {};
+    return this.models.tipos_entrada.findAll({
+      where,
+      order: [["nombre_tipo", "ASC"]],
     });
-
-    return tipos_entradas;
   }
 
   async show({ tipos_entrada_id }) {
-    const tipos_entrada = await this.models.tipos_entrada.findByPk(tipos_entrada_id);
-
-    if (!tipos_entrada) throw new CustomError('tipos_entrada not found', 404);
-
+    const tipos_entrada = await this.models.tipos_entrada.findByPk(
+      tipos_entrada_id
+    );
+    if (!tipos_entrada) throw new CustomError("tipos_entrada not found", 404);
     return tipos_entrada;
   }
 
-  async create({ column_1, column_2 }) {
-    const tipos_entrada = await this.models.tipos_entrada.create({
-      column_1, column_2,
+  async create({
+    id_evento,
+    nombre_tipo,
+    precio,
+    cantidad_total,
+    cantidad_disponible,
+    descripcion_adicional,
+  }) {
+    return this.models.tipos_entrada.create({
+      id_evento,
+      nombre_tipo,
+      precio,
+      cantidad_total,
+      cantidad_disponible,
+      descripcion_adicional,
     });
-
-    return tipos_entrada;
   }
 
-  async update({ tipos_entrada_id, column_1, column_2 }) {
-    const tipos_entrada = await this.models.tipos_entrada.findByPk(tipos_entrada_id);
-
-    if (!tipos_entrada) throw new CustomError('tipos_entrada not found', 404);
-
+  async update({
+    tipos_entrada_id,
+    nombre_tipo,
+    precio,
+    cantidad_total,
+    cantidad_disponible,
+    descripcion_adicional,
+  }) {
+    const tipos_entrada = await this.models.tipos_entrada.findByPk(
+      tipos_entrada_id
+    );
+    if (!tipos_entrada) throw new CustomError("tipos_entrada not found", 404);
     await tipos_entrada.update({
-      column_1,
-      column_2,
+      nombre_tipo,
+      precio,
+      cantidad_total,
+      cantidad_disponible,
+      descripcion_adicional,
     });
-
-    return {
-      ...tipos_entrada.toJSON(),
-      column_1,
-      column_2,
-    };
+    return tipos_entrada;
   }
 
   async delete({ tipos_entrada_id }) {
-    const tipos_entrada = await this.models.tipos_entrada.findByPk(tipos_entrada_id);
-
-    if (!tipos_entrada) throw new CustomError('tipos_entrada not found', 404);
-
+    const tipos_entrada = await this.models.tipos_entrada.findByPk(
+      tipos_entrada_id
+    );
+    if (!tipos_entrada) throw new CustomError("tipos_entrada not found", 404);
     await tipos_entrada.destroy();
-
     return tipos_entrada;
   }
 }

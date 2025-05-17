@@ -1,4 +1,5 @@
-const { Op } = require('sequelize');const CustomError = require('../../domain/exceptions/CustomError');
+
+const CustomError = require('../../domain/exceptions/CustomError');
 
 class EventosRepository {
   constructor(models) {
@@ -6,18 +7,50 @@ class EventosRepository {
   }
 
   async list() {
-    const eventos = await this.models.evento.findAll({
-      order: [['name', 'asc']],
-    });
-
-    return eventos;
+    try {
+      return await this.models.evento.findAll({
+        order: [['evento_id', 'asc']],
+        include: [
+          {
+            model: this.models.tipos_entrada,
+            as: 'tipos_entrada',
+            attributes: [
+              'id_tipo_entrada',
+              'nombre_tipo',
+              'precio',
+              'cantidad_total',
+              'cantidad_disponible',
+              'descripcion_adicional',
+            ],
+          },
+        ],
+      });
+    } catch (err) {
+      console.error('⚠️ EventosRepository.list fallo:', err.message);
+      throw err;
+    }
   }
 
   async show({ evento_id }) {
-    const evento = await this.models.evento.findByPk(evento_id);
-
+    const evento = await this.models.evento.findByPk(evento_id, {
+      include: [
+        {
+          model: this.models.tipos_entrada,
+          as: 'tipos_entrada',
+          attributes: [
+            'id_tipo_entrada',
+            'nombre_tipo',
+            'precio',
+            'cantidad_total',
+            'cantidad_disponible',
+            'descripcion_adicional',
+          ],
+        },
+      ],
+    });
+  
     if (!evento) throw new CustomError('evento not found', 404);
-
+  
     return evento;
   }
 
