@@ -26,12 +26,8 @@ class TiposEntradasRepository {
   }
 
   async create({
-    id_evento,
-    nombre_tipo,
-    precio,
-    cantidad_total,
-    cantidad_disponible,
-    descripcion_adicional,
+    id_evento, nombre_tipo, precio,
+    cantidad_total, cantidad_disponible, descripcion_adicional
   }) {
     return this.models.tipos_entrada.create({
       id_evento,
@@ -39,7 +35,7 @@ class TiposEntradasRepository {
       precio,
       cantidad_total,
       cantidad_disponible,
-      descripcion_adicional,
+      descripcion_adicional
     });
   }
 

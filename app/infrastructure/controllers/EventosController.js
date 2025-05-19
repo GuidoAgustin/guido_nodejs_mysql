@@ -55,14 +55,37 @@
 
     async create(req, res, next) {
       try {
-        const { column_1, column_2 } = req.body;
-
+        const {
+          nombre_evento,
+          descripcion,
+          fecha_hora_inicio,
+          fecha_hora_fin,
+          lugar_nombre,
+          lugar_direccion,
+          categoria,
+          estado_evento,
+        } = req.body;
+  
+        let imagen_url = null;
+        if (req.file) {
+          // Sirves luego la carpeta 'public/images' como estático:
+          //   app.use("/images", express.static("public/images"));
+          imagen_url = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+        }
+  
         const result = await this.createEvento.execute({
-          column_1,
-          column_2,
+          nombre_evento,
+          descripcion,
+          fecha_hora_inicio,
+          fecha_hora_fin,
+          lugar_nombre,
+          lugar_direccion,
+          categoria,
+          imagen_url,
+          estado_evento,
         });
-
-        res.status(200).send(getResponseCustom(200, result));
+  
+        res.status(201).send(getResponseCustom(201, result));
         res.end();
       } catch (error) {
         next(error);
