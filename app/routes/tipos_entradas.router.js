@@ -11,7 +11,7 @@ router.get("/", [], (req, res, next) =>
 );
 
 // Crear un tipo (POST /tipos_entradas)
-router.post("/", [], (req, res, next) =>
+router.post("/", [authMiddleware], (req, res, next) =>
   controllers.tiposEntradasController.create(req, res, next)
 );
 

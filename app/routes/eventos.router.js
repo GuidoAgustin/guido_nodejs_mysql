@@ -14,7 +14,7 @@ router.get("/", [], (req, res, next) =>
 // 2) Crear evento con imagen (campo 'imagen')
 router.post(
   "/",
-  [ imageMiddleware.single("imagen")],
+  [ authMiddleware, imageMiddleware.single("imagen")],
   (req, res, next) => controllers.eventosController.create(req, res, next)
 );
 
