@@ -6,6 +6,8 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(models.tipos_entrada, {
         as: 'tipos_entrada',
         foreignKey: 'id_evento',
+        onDelete: 'CASCADE',          // <-- cascada
+        hooks: true                   // <-- importante para que funcione
       });
     }
   }
