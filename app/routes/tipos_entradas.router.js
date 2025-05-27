@@ -21,7 +21,7 @@ router.get("/:tipos_entrada_id", [], (req, res, next) =>
 );
 
 // Actualizar un tipo (PUT /tipos_entradas/:tipos_entrada_id)
-router.put("/:tipos_entrada_id", [], (req, res, next) =>
+router.put("/:tipos_entrada_id", [authMiddleware], (req, res, next) =>
   controllers.tiposEntradasController.update(req, res, next)
 );
 

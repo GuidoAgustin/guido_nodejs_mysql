@@ -79,21 +79,34 @@ class EventosRepository {
     return evento;
   }
 
-  async update({ evento_id, column_1, column_2 }) {
+  async update({ evento_id, updateData }) { // updateData contendrá todos los campos a actualizar
     const evento = await this.models.evento.findByPk(evento_id);
 
-    if (!evento) throw new CustomError('evento not found', 404);
+    if (!evento) {
+      throw new CustomError('Evento no encontrado', 404);
+    }
 
-    await evento.update({
-      column_1,
-      column_2,
+    // 'updateData' es un objeto con los campos a modificar.
+    // Sequelize se encarga de actualizar solo los campos presentes en updateData.
+    await evento.update(updateData);
+
+    // Devolver la instancia actualizada con sus asociaciones (similar a show/list)
+    return this.models.evento.findByPk(evento_id, {
+      include: [
+        {
+          model: this.models.tipos_entrada,
+          as: 'tipos_entrada',
+          attributes: [
+            'id_tipo_entrada',
+            'nombre_tipo',
+            'precio',
+            'cantidad_total',
+            'cantidad_disponible',
+            'descripcion_adicional',
+          ],
+        },
+      ],
     });
-
-    return {
-      ...evento.toJSON(),
-      column_1,
-      column_2,
-    };
   }
 
   async delete({ evento_id }) {

@@ -14,7 +14,7 @@ router.get("/", [], (req, res, next) =>
 // 2) Crear evento con imagen (campo 'imagen')
 router.post(
   "/",
-  [ authMiddleware, imageMiddleware.single("imagen")],
+  [authMiddleware, imageMiddleware.single("imagen")],
   (req, res, next) => controllers.eventosController.create(req, res, next)
 );
 
@@ -26,15 +26,13 @@ router.get("/:evento_id", [], (req, res, next) =>
 // 4) Actualizar evento, opcionalmente reemplazando imagen
 router.put(
   "/:evento_id",
-  [ imageMiddleware.single("imagen")],
+  [ authMiddleware, imageMiddleware.single("imagen")],
   (req, res, next) => controllers.eventosController.update(req, res, next)
 );
 
 // 5) Borrar evento
-router.delete(
-  "/:evento_id",
-  [authMiddleware],
-  (req, res, next) => controllers.eventosController.delete(req, res, next)
+router.delete("/:evento_id", [authMiddleware], (req, res, next) =>
+  controllers.eventosController.delete(req, res, next)
 );
 
 // 6) Listar tipos de un evento

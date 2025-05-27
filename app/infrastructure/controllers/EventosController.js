@@ -95,16 +95,33 @@
     async update(req, res, next) {
       try {
         const { evento_id } = req.params;
-        const { column_1, column_2 } = req.body;
-
+        const eventData = { ...req.body }; // Copia los campos de texto del body
+  
+        // Si se subió un nuevo archivo de imagen
+        if (req.file) {
+          // Construye la URL para la nueva imagen. Ajusta según tu configuración de servidor de estáticos.
+          eventData.imagen_url = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+        } else if (eventData.imagen_url === undefined && evento_id) {
+          // Si no se envía un nuevo archivo Y no se especifica 'imagen_url' en el body,
+          // significa que no se quiere cambiar la imagen. Eliminamos 'imagen_url' del payload
+          // para que el repositorio no intente actualizarla a 'undefined'.
+          // Si 'imagen_url' se envía explícitamente (ej. vacía para borrar, o una URL externa), se respetará.
+          delete eventData.imagen_url;
+        }
+  
+  
+        // Aquí puedes agregar conversión de tipos si es necesario (ej. de string a número para campos específicos)
+        // Por ejemplo, si sabes que 'capacidad' debe ser un número:
+        // if (eventData.capacidad) eventData.capacidad = parseInt(eventData.capacidad, 10);
+  
         const result = await this.updateEvento.execute({
           evento_id,
-          column_1,
-          column_2,
+          eventDataFromController: eventData,
+          newImageFileDetails: req.file // Pasa info del archivo para que el servicio pueda manejar la imagen antigua
         });
-
+  
         res.status(200).send(getResponseCustom(200, result));
-        res.end();
+        // res.end(); // getResponseCustom podría ya hacer esto o send() lo hace.
       } catch (error) {
         next(error);
       }
