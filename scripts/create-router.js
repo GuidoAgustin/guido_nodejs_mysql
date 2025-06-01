@@ -8,6 +8,7 @@ const router = express.Router();
 
 const authMiddleware = require('../infrastructure/middlewares/auth.middleware');
 const routeACL = require('../infrastructure/middlewares/acl.middleware');
+const controllers = require("../infrastructure/injectors");
 `;
 
   if (use_cases.includes('paginate') || use_cases.includes('list')) {
@@ -18,7 +19,7 @@ router.get(
     authMiddleware,
     routeACL('${pluralSC}.index'),
   ],
-  (req, res, next) => req.controllers.${pluralCC}Controller.index(req, res, next),
+  (req, res, next) => controllers.${pluralCC}Controller.index(req, res, next),
 );`;
   }
 
@@ -31,7 +32,7 @@ router.post(
     authMiddleware,
     routeACL('${pluralSC}.create'),
   ],
-  (req, res, next) => req.controllers.${pluralCC}Controller.create(req, res, next),
+  (req, res, next) => controllers.${pluralCC}Controller.create(req, res, next),
 );`;
   }
 
@@ -44,7 +45,7 @@ router.get(
     authMiddleware,
     routeACL('${pluralSC}.show'),
   ],
-  (req, res, next) => req.controllers.${pluralCC}Controller.show(req, res, next),
+  (req, res, next) => controllers.${pluralCC}Controller.show(req, res, next),
 );`;
   }
 
@@ -57,7 +58,7 @@ router.put(
     authMiddleware,
     routeACL('${pluralSC}.update'),
   ],
-  (req, res, next) => req.controllers.${pluralCC}Controller.update(req, res, next),
+  (req, res, next) => controllers.${pluralCC}Controller.update(req, res, next),
 );`;
   }
 
@@ -70,7 +71,7 @@ router.delete(
     authMiddleware,
     routeACL('${pluralSC}.delete'),
   ],
-  (req, res, next) => req.controllers.${pluralCC}Controller.delete(req, res, next),
+  (req, res, next) => controllers.${pluralCC}Controller.delete(req, res, next),
 );`;
   }
 
