@@ -37,6 +37,7 @@
     "nodemailer": "^6.7.5",
     "nodemon": "^2.0.19",
     "sequelize": "^6.29.0",
+    "uuid": "^11.1.0",
     "uuidv4": "^6.2.2",
     "validatorjs": "^3.22.1",
     "yargs": "^17.6.2",
