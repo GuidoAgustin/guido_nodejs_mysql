@@ -7,11 +7,13 @@ class CreateOrdenes {
     ordenesRepository,
     entradasVendidasRepository,
     tiposEntradasRepository,
+    eventosRepository, // Recibir EventosRepository
     sequelize
   ) {
     this.ordenesRepository = ordenesRepository;
     this.entradasVendidasRepository = entradasVendidasRepository;
     this.tiposEntradasRepository = tiposEntradasRepository;
+    this.eventosRepository = eventosRepository; // Asignar
     this.sequelize = sequelize;
   }
 
@@ -23,8 +25,8 @@ class CreateOrdenes {
       );
     }
 
-    // Iniciar transacción de base de datos
     const t = await this.sequelize.transaction();
+    let eventoIdParaVerificar = null; // Variable para guardar el ID del evento
 
     try {
       let montoTotalCalculado = 0;
@@ -48,12 +50,13 @@ class CreateOrdenes {
         }
         if (tipoEntrada.cantidad_disponible < item.cantidad) {
           throw new CustomError(
-            `Stock insuficiente para "${tipoEntrada.nombre_tipo}".
-           Disponibles: ${tipoEntrada.cantidad_disponible}, Solicitadas: ${item.cantidad}.`,
+            `Stock insuficiente para "${tipoEntrada.nombre_tipo}". 
+            Disponibles: ${tipoEntrada.cantidad_disponible}, Solicitadas: ${item.cantidad}.`,
             409
           );
         }
 
+        eventoIdParaVerificar = tipoEntrada.id_evento; // Guardar el ID del evento
         itemsParaProcesarConPrecioReal.push({
           ...item,
           precio_real_unitario: parseFloat(tipoEntrada.precio),
@@ -63,10 +66,7 @@ class CreateOrdenes {
       montoTotalCalculado = Math.round(montoTotalCalculado * 100) / 100;
 
       // Crear la orden
-      const datosOrden = {
-        id_usuario,
-        monto_total: montoTotalCalculado,
-      };
+      const datosOrden = { id_usuario, monto_total: montoTotalCalculado };
       const nuevaOrden = await this.ordenesRepository.create(datosOrden, t);
 
       // Crear las entradas vendidas
@@ -96,6 +96,27 @@ class CreateOrdenes {
       }
 
       await t.commit(); // Confirmar la transacción
+
+      // Verificar si el evento se agotó después del commit
+      if (eventoIdParaVerificar) {
+        const todosLosTiposDelEvento = await this.tiposEntradasRepository.list({
+          id_evento: eventoIdParaVerificar,
+        });
+        const stockTotalRestante = todosLosTiposDelEvento.reduce(
+          (sum, tipo) => sum + tipo.cantidad_disponible,
+          0
+        );
+
+        if (stockTotalRestante === 0) {
+          const datosParaActualizar = { estado_evento: "agotado" };
+          await this.eventosRepository.update({
+            evento_id: eventoIdParaVerificar,
+            updateData: datosParaActualizar,
+          });
+          // console.log(`[CreateOrdenesService] Evento ID ${eventoIdParaVerificar} 
+          // actualizado a 'agotado'.`); // Log opcional
+        }
+      }
 
       // Devolver la orden creada con sus items asociados
       return this.ordenesRepository.show({ ordenes_id: nuevaOrden.id_orden });

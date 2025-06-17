@@ -6,6 +6,10 @@ module.exports = {
     host: process.env.DB_HOSTNAME,
     port: process.env.DB_PORT,
     dialect: 'mysql',
+    logging: (msg) => {
+      if (msg.includes("UPDATE `evento` SET `estado_evento`")) return;
+      console.log(msg);
+    },
     dialectOptions: {
       bigNumberStrings: true,
       timezone: '-00:00',

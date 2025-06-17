@@ -2,7 +2,8 @@
 const { 
   OrdenesesRepository, 
   TiposEntradasRepository, 
-  EntradasVendidasesRepository // <<<< AÑADIR IMPORTACIÓN
+  EntradasVendidasesRepository,
+  EventosRepository // Añadir EventosRepository
 } = require('../repositories'); 
 const {
   GetOrdenesesList,
@@ -16,13 +17,15 @@ const OrdenesesController = require('../controllers/OrdenesesController');
 module.exports = function registerController({ models, sequelize }) {
   const ordenesesRepository = new OrdenesesRepository(models);
   const tiposEntradasRepository = new TiposEntradasRepository(models);
-  const entradasVendidasesRepository = new EntradasVendidasesRepository(models); // <<<< INSTANCIAR
+  const entradasVendidasesRepository = new EntradasVendidasesRepository(models);
+  const eventosRepository = new EventosRepository(models); // Instanciar EventosRepository
 
   const getOrdenesesList = new GetOrdenesesList(ordenesesRepository);
   const createOrdenes = new CreateOrdenes(
     ordenesesRepository, 
-    entradasVendidasesRepository, // <<<< PASAR AL CONSTRUCTOR
+    entradasVendidasesRepository,
     tiposEntradasRepository, 
+    eventosRepository, // Pasar EventosRepository
     sequelize
   ); 
   const showOrdenes = new ShowOrdenes(ordenesesRepository);
