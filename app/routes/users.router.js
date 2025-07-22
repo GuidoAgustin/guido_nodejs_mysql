@@ -22,6 +22,12 @@ router.post(
   (req, res, next) => controllers.usersController.registro(req, res, next),
 );
 
+router.get(
+  '/users',
+  [authMiddleware], 
+  (req, res, next) => controllers.usersController.getAllUsers(req, res, next),
+);
+
 module.exports = {
   basePath: '/',
   router,

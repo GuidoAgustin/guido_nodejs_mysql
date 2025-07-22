@@ -4,6 +4,7 @@ const { usersRepository } = require('../repositories');
 const {
   LoginUser,
   UpdateUserProfile,
+  GetAllUsers,
 } = require('../../application/users');
 
 const UsersController = require('../controllers/UsersController');
@@ -14,15 +15,23 @@ const loginUser = new LoginUser({
   validator,
   jwt,
 });
+
 const updateUserProfile = new UpdateUserProfile({
   usersRepository,
   validator,
 });
 
+const getAllUsers = new GetAllUsers({
+  usersRepository,
+});
+
 const usersController = new UsersController({
   loginUser,
   updateUserProfile,
+  getAllUsers,
 });
+
+
 
 module.exports = {
   usersController,

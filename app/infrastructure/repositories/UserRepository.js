@@ -43,6 +43,11 @@ class UsersRepository {
   checkPassword({ password, user_password }) {
     return bcrypt.compareSync(password, user_password);
   }
+
+  async getAllUsers() {
+    const users = await this.models.user.scope('noPassword').findAll();
+    return users;
+  }
 }
 
 module.exports = UsersRepository;
