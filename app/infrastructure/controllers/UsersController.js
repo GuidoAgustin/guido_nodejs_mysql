@@ -124,11 +124,34 @@ class UsersController {
     }
   }
 
-  async getAllUsers(req, res, next) {
+    async getAllUsers(req, res, next) {
     try {
-      // CAMBIO 2: Usamos la propiedad con el nuevo nombre
-      const result = await this.getAllUsersUseCase.execute(); 
-      res.status(200).send(response.getResponseCustom(200, result));
+      const { ids, search, page, per_page, sort_by, sort_dir } = req.query;
+      const filters = {};
+      if (ids) {
+        filters.ids = ids
+          .split(',')
+          .map((s) => parseInt(s, 10))
+          .filter(Boolean);
+      }
+      if (search) filters.search = search;
+
+      if (sort_by) filters.sort_by = sort_by;
+    if (sort_dir) filters.sort_dir = sort_dir;
+
+      const pagination = {};
+      if (per_page) pagination.per_page = parseInt(per_page, 10);
+      if (page) pagination.page = parseInt(page, 10);
+
+      const result = await this.getAllUsersUseCase.execute({ filters, pagination });
+
+      // ← Devolver total + data
+      res.status(200).send(response.getResponseCustom(200, {
+        data: result.users,
+        total: result.total,
+        per_page: pagination.per_page || 10,
+        current_page: pagination.page || 1
+      }));
       res.end();
     } catch (error) {
       next(error);
