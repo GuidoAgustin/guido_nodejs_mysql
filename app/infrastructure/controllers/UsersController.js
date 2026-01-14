@@ -3,11 +3,13 @@ const models = require("../../models");
 const validate = require("../libs/validate");
 
 class UsersController {
-  constructor({ loginUser, updateUserProfile, getAllUsers }) {
+  constructor({ loginUser, updateUserProfile, getAllUsers, adminUpdateUser, adminDeleteUser }) {
     this.name = "UsersController";
     this.loginUser = loginUser;
     this.updateUserProfile = updateUserProfile;
     this.getAllUsersUseCase = getAllUsers; 
+    this.adminUpdateUser = adminUpdateUser;
+    this.adminDeleteUser = adminDeleteUser;
   }
 
   async login(req, res, next) {
@@ -153,6 +155,33 @@ class UsersController {
         current_page: pagination.page || 1
       }));
       res.end();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async adminUpdate(req, res, next) {
+    try {
+      const { id } = req.params; // Viene de la ruta /users/:id
+      const data = req.body;
+
+      // Ejecutamos el Caso de Uso Limpio
+      const result = await this.adminUpdateUser.execute({ user_id: id, data });
+
+      res.status(200).send(response.getResponseCustom(200, result));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async adminDelete(req, res, next) {
+    try {
+      const { id } = req.params; // Viene de la ruta /users/:id
+
+      // Ejecutamos el Caso de Uso Limpio
+      await this.adminDeleteUser.execute({ user_id: id });
+
+      res.status(200).send(response.getResponseCustom(200, { message: 'Usuario eliminado correctamente' }));
     } catch (error) {
       next(error);
     }

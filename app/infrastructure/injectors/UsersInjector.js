@@ -5,6 +5,8 @@ const {
   LoginUser,
   UpdateUserProfile,
   GetAllUsers,
+  AdminUpdateUser, 
+  AdminDeleteUser
 } = require('../../application/users');
 
 const UsersController = require('../controllers/UsersController');
@@ -25,10 +27,21 @@ const getAllUsers = new GetAllUsers({
   usersRepository,
 });
 
+const adminUpdateUser = new AdminUpdateUser({
+  usersRepository,
+  validator
+});
+
+const adminDeleteUser = new AdminDeleteUser({
+  usersRepository,
+});
+
 const usersController = new UsersController({
   loginUser,
   updateUserProfile,
   getAllUsers,
+  adminUpdateUser,
+  adminDeleteUser
 });
 
 
