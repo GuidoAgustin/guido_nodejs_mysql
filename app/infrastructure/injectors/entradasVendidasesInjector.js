@@ -5,8 +5,8 @@ const {
   CreateEntradasVendidas,
   UpdateEntradasVendidas,
   DeleteEntradasVendidas,
-} = require('../../application/entradas_vendidases');
-const EntradasVendidasesController = require('../controllers/EntradasVendidasesController');
+} = require('../../application/Ticketing/entradas_vendidases');
+const EntradasVendidasesController = require('../controllers/ticketing/EntradasVendidasesController');
 
 module.exports = function registerController({ models }) {
   const entradasVendidasesRepository = new EntradasVendidasesRepository(models);

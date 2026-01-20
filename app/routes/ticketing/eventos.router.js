@@ -1,8 +1,8 @@
 // backend/app/routes/eventos.router.js
 const express = require("express");
-const { authMiddleware } = require("../infrastructure/middlewares/auth");
-const { imageMiddleware } = require("../infrastructure/middlewares/files");
-const controllers = require("../infrastructure/injectors");
+const { authMiddleware } = require("../../infrastructure/middlewares/auth");
+const { imageMiddleware } = require("../../infrastructure/middlewares/files");
+const controllers = require("../../infrastructure/injectors");
 
 const router = express.Router();
 

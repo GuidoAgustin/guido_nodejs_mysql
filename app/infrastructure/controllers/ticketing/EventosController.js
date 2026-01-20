@@ -1,4 +1,4 @@
-  const { getResponseCustom } = require('../libs/serviceUtil');
+  const { getResponseCustom } = require('../../libs/serviceUtil');
 
   class EventosController {
     constructor({

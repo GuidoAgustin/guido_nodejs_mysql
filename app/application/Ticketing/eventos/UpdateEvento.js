@@ -1,7 +1,7 @@
 // backend/app/application/eventos/UpdateEvento.js
 const fs = require("fs");
 const path = require("path");
-const CustomError = require("../../domain/exceptions/CustomError");
+const CustomError = require("../../../domain/exceptions/CustomError");
 
 class UpdateEvento {
   constructor(eventosRepository) {

@@ -1,8 +1,8 @@
 const express = require("express");
 
 const router = express.Router();
-const { authMiddleware } = require("../infrastructure/middlewares/auth");
-const controllers = require("../infrastructure/injectors");
+const { authMiddleware } = require("../../infrastructure/middlewares/auth");
+const controllers = require("../../infrastructure/injectors");
 
 router.get("/", [authMiddleware], (req, res, next) =>
   controllers.entradasVendidasesController.index(req, res, next)

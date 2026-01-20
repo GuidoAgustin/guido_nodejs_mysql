@@ -11,8 +11,8 @@ const {
   CreateOrdenes,
   UpdateOrdenes,
   DeleteOrdenes,
-} = require('../../application/ordeneses');
-const OrdenesesController = require('../controllers/OrdenesesController');
+} = require('../../application/Ticketing/ordeneses');
+const OrdenesesController = require('../controllers/ticketing/OrdenesesController');
 
 module.exports = function registerController({ models, sequelize }) {
   const ordenesesRepository = new OrdenesesRepository(models);

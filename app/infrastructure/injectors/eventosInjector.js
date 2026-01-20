@@ -5,8 +5,8 @@ const {
   CreateEvento,
   UpdateEvento,
   DeleteEvento,
-} = require('../../application/eventos');
-const EventosController = require('../controllers/EventosController');
+} = require('../../application/Ticketing/eventos');
+const EventosController = require('../controllers/ticketing/EventosController');
 
 module.exports = function registerController({ models }) {
   const eventosRepository = new EventosRepository(models);

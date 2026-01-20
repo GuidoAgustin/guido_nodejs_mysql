@@ -1,6 +1,6 @@
 // backend/app/application/ordeneses/CreateOrdenes.js
 const { v4: uuidv4 } = require("uuid");
-const CustomError = require("../../domain/exceptions/CustomError");
+const CustomError = require("../../../domain/exceptions/CustomError");
 
 class CreateOrdenes {
   constructor(

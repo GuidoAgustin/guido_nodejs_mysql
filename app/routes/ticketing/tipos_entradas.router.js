@@ -2,8 +2,8 @@
 const express = require("express");
 
 const router = express.Router();
-const controllers = require("../infrastructure/injectors");
-const { authMiddleware } = require("../infrastructure/middlewares/auth");
+const controllers = require("../../infrastructure/injectors");
+const { authMiddleware } = require("../../infrastructure/middlewares/auth");
 
 // Listar todos los tipos (GET /tipos_entradas)
 router.get("/", [], (req, res, next) =>

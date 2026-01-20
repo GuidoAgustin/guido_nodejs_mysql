@@ -1,6 +1,6 @@
 // backend/app/infrastructure/controllers/OrdenesesController.js
-const { getResponseCustom } = require("../libs/serviceUtil");
-const CustomError = require("../../domain/exceptions/CustomError");
+const { getResponseCustom } = require("../../libs/serviceUtil");
+const CustomError = require("../../../domain/exceptions/CustomError");
 
 class OrdenesesController {
   constructor({

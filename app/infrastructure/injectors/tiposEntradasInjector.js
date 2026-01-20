@@ -5,8 +5,8 @@ const {
   CreateTiposEntrada,
   UpdateTiposEntrada,
   DeleteTiposEntrada,
-} = require('../../application/tipos_entradas');
-const TiposEntradasController = require('../controllers/TiposEntradasController');
+} = require('../../application/Ticketing/tipos_entradas');
+const TiposEntradasController = require('../controllers/ticketing/TiposEntradasController');
 
 module.exports = function registerController({ models }) {
   const tiposEntradasRepository = new TiposEntradasRepository(models);
