@@ -13,6 +13,8 @@ const eventosInjector = require('./eventosInjector');
 const tiposEntradasInjector = require('./tiposEntradasInjector');
 const ordenesesInjector = require('./ordenesesInjector'); // Este es el que necesita 'sequelize'
 const entradasVendidasesInjector = require('./entradasVendidasesInjector');
+// 👇 1. IMPORTAMOS EL INYECTOR DEL CARRITO 👇
+const carritoInjector = require('./carritoInjector');
 
 // Instanciamos los controladores que se obtienen llamando a sus funciones inyectoras
 const eventosController = eventosInjector({ models });
@@ -22,6 +24,8 @@ const entradasVendidasesController = entradasVendidasesInjector({ models });
 // Para ordenesesInjector, le pasamos 'models' Y 'sequelize'
 // El nombre de la variable aquí (ordenesCtrlInstance) es local a este archivo.
 const ordenesCtrlInstance = ordenesesInjector({ models, sequelize }); 
+// 👇 2. CREAMOS LA INSTANCIA DEL CONTROLADOR 👇
+const carritoController = carritoInjector({ models });
 
 module.exports = {
   usersController, // Se exporta el usersController obtenido arriba
@@ -29,4 +33,6 @@ module.exports = {
   tiposEntradasController,
   ordenesesController: ordenesCtrlInstance, // <<<< Aquí usamos la instancia y el nombre que espera tu router
   entradasVendidasesController,
+  // 👇 3. LO EXPORTAMOS PARA QUE LO USE EL ROUTER 👇
+  carritoController,
 };

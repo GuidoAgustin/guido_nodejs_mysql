@@ -1,7 +1,15 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class tipos_entrada extends Model {}
+  class tipos_entrada extends Model {
+    // 👇 AGREGAMOS ESTE BLOQUE PARA CONECTARLO CON EL EVENTO 👇
+    static associate(models) {
+      this.belongsTo(models.evento, { 
+        foreignKey: 'id_evento',
+        as: 'eventoInfo' 
+      });
+    }
+  }
   tipos_entrada.init(
     {
       id_tipo_entrada: {
