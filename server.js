@@ -18,6 +18,7 @@ const { errorHandler } = require("./app/infrastructure/libs/errorHandler");
 
 // Iniciar tareas programadas (CRON jobs)
 require("./app/infrastructure/cron/updateEventStatus.js"); // <<<<---- LÍNEA AÑADIDA
+require('./app/infrastructure/cron/liberarStockVencido');
 
 const app = express();
 

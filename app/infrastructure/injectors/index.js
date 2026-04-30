@@ -15,11 +15,13 @@ const ordenesesInjector = require('./ordenesesInjector'); // Este es el que nece
 const entradasVendidasesInjector = require('./entradasVendidasesInjector');
 // 👇 1. IMPORTAMOS EL INYECTOR DEL CARRITO 👇
 const carritoInjector = require('./carritoInjector');
+const mercadoPagoInjector = require('./mercadoPagoInjector');
 
 // Instanciamos los controladores que se obtienen llamando a sus funciones inyectoras
 const eventosController = eventosInjector({ models });
 const tiposEntradasController = tiposEntradasInjector({ models });
 const entradasVendidasesController = entradasVendidasesInjector({ models });
+const mercadoPagoController = mercadoPagoInjector({ models });
 
 // Para ordenesesInjector, le pasamos 'models' Y 'sequelize'
 // El nombre de la variable aquí (ordenesCtrlInstance) es local a este archivo.
@@ -35,4 +37,5 @@ module.exports = {
   entradasVendidasesController,
   // 👇 3. LO EXPORTAMOS PARA QUE LO USE EL ROUTER 👇
   carritoController,
+  mercadoPagoController,
 };
