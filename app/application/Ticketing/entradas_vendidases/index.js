@@ -3,6 +3,7 @@ const CreateEntradasVendidas = require('./CreateEntradasVendidas');
 const ShowEntradasVendidas = require('./ShowEntradasVendidas');
 const UpdateEntradasVendidas = require('./UpdateEntradasVendidas');
 const DeleteEntradasVendidas = require('./DeleteEntradasVendidas');
+const GetTicketByCodigo = require('./GetTicketByCodigo');
 
 module.exports = {
   GetEntradasVendidasesList,
@@ -10,5 +11,6 @@ module.exports = {
   ShowEntradasVendidas,
   UpdateEntradasVendidas,
   DeleteEntradasVendidas,
+  GetTicketByCodigo
 };
   

@@ -26,6 +26,33 @@ class EntradasVendidasesRepository {
     return entradaVendida;
   }
 
+  // Buscar entrada por código único con sus relaciones para el PDF
+ async getByCodigoUnico(codigo_unico) {
+    const entradaVendida = await this.models.entradas_vendidas.findOne({
+      where: { codigo_unico },
+      include: [
+        { 
+          // Traemos el tipo de entrada usando el alias EXACTO de tu modelo
+          model: this.models.tipos_entrada, 
+          as: 'tipoEntrada',
+          // ¡Acá está la magia! Le decimos al tipo de entrada que traiga al evento
+          include: [
+            { 
+              model: this.models.evento, 
+              as: 'eventoInfo' // (Asegurate de que este sea el alias en tipos_entrada.model.js)
+            }
+          ]
+        }
+      ]
+    });
+
+    if (!entradaVendida) {
+      throw new CustomError('Ticket no encontrado', 404);
+    }
+    
+    return entradaVendida;
+  }
+
   /**
    * Crea un nuevo registro de entrada vendida.
    * @param {object} datosEntrada - Datos para la entrada vendida.

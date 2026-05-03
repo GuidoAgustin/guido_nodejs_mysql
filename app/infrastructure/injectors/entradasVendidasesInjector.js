@@ -5,6 +5,7 @@ const {
   CreateEntradasVendidas,
   UpdateEntradasVendidas,
   DeleteEntradasVendidas,
+  GetTicketByCodigo,
 } = require('../../application/Ticketing/entradas_vendidases');
 const EntradasVendidasesController = require('../controllers/ticketing/EntradasVendidasesController');
 
@@ -16,6 +17,7 @@ module.exports = function registerController({ models }) {
   const showEntradasVendidas = new ShowEntradasVendidas(entradasVendidasesRepository);
   const updateEntradasVendidas = new UpdateEntradasVendidas(entradasVendidasesRepository);
   const deleteEntradasVendidas = new DeleteEntradasVendidas(entradasVendidasesRepository);
+  const getTicketByCodigo = new GetTicketByCodigo(entradasVendidasesRepository);
 
   return new EntradasVendidasesController({
     getEntradasVendidasesList,
@@ -23,5 +25,6 @@ module.exports = function registerController({ models }) {
     showEntradasVendidas,
     updateEntradasVendidas,
     deleteEntradasVendidas,
+    getTicketByCodigo,
   });
 };
