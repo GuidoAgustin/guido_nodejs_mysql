@@ -1,20 +1,43 @@
+// backend/app/application/mercadopago/ProcesarWebhook.js
+
 class ProcesarWebhook {
-  constructor({ ordenesRepository }) {
+  // 👇 Inyectamos a nuestro nuevo empleado: el repo de entradas
+  constructor({ ordenesRepository, entradasVendidasRepository, tiposEntradasRepository }) {
     this.$ordenes = ordenesRepository;
+    this.$entradas = entradasVendidasRepository; 
+    this.$tipos = tiposEntradasRepository; // <-- Nuevo integrante
   }
 
-  async execute(req) {
-    // 1. Agarramos el ID de la orden que nos mandó MP en la URL
+ async execute(req) {
     const { orden_id } = req.query;
+    const estado_mp = req.query.estado || 'aprobado'; 
 
     if (orden_id) {
-      // 2. Buscamos la orden en tu base de datos
-      const orden = await this.$ordenes.findOne({ where: { id_orden: orden_id } });
+      // Traemos la orden con sus entradas para saber QUÉ devolver
+      const orden = await this.$ordenes.findOne({ 
+        where: { id_orden: orden_id },
+        include: [{ model: this.$entradas.models.entradas_vendidas, as: 'itemsDeOrden' }] 
+      });
 
-      // 3. Si existe y estaba pendiente, ¡la pasamos a pagado!
       if (orden && orden.estado_pago === 'pendiente') {
-        await orden.update({ estado_pago: 'pagado' });
-        console.log(`✅ ¡BINGO! MERCADO PAGO AVISÓ Y LA ORDEN ${orden_id} ESTÁ PAGADA.`);
+        if (estado_mp === 'aprobado') {
+          await orden.update({ estado_pago: 'pagado' });
+        } 
+        else if (estado_mp === 'rechazado' || estado_mp === 'cancelado') {
+          await orden.update({ estado_pago: 'cancelado' });
+          
+          await this.$entradas.update(
+            { estado_entrada: 'cancelada' }, 
+            { where: { id_orden: orden_id } }
+          );
+
+          // 🔄 ¡MAGIA! Devolvemos el stock por cada tipo de entrada en la orden
+          for (const item of orden.itemsDeOrden) {
+            await this.$tipos.incrementStock(item.id_tipo_entrada, 1);
+          }
+          
+          console.log(`❌ Orden ${orden_id} cancelada. Stock devuelto.`);
+        }
       }
     }
     return true;

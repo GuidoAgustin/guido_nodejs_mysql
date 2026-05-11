@@ -11,6 +11,9 @@ router.post(
 router.post("/mercadopago/confirmar-pago", [authMiddleware], (req, res, next) =>
   controllers.mercadoPagoController.confirmar(req, res, next),
 );
+router.post("/mercadopago/cancelar-pago", [authMiddleware], (req, res, next) =>
+  controllers.mercadoPagoController.cancelar(req, res, next),
+);
 router.post("/mercadopago/webhook", (req, res, next) =>
   controllers.mercadoPagoController.webhook(req, res, next),
 );

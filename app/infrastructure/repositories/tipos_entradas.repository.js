@@ -106,6 +106,25 @@ class TiposEntradasRepository {
     return tipoEntrada;
   }
 
+  /**
+   * Incrementa el stock de un tipo de entrada específico (Devolución).
+   * @param {number} id_tipo_entrada
+   * @param {number} cantidadAIncrementar
+   * @param {object} [transaction=null] - Transacción opcional.
+   */
+  async incrementStock(id_tipo_entrada, cantidadAIncrementar, transaction = null) {
+    const tipoEntrada = await this.models.tipos_entrada.findByPk(id_tipo_entrada, { transaction });
+    
+    if (!tipoEntrada) {
+      throw new CustomError(`Tipo de entrada con ID ${id_tipo_entrada} no encontrado para devolver stock.`, 404);
+    }
+
+    // Devolvemos las entradas a la góndola
+    tipoEntrada.cantidad_disponible += cantidadAIncrementar;
+    await tipoEntrada.save({ transaction });
+    return tipoEntrada;
+  }
+
   // Borrar un tipo de entrada
   async delete({ tipos_entrada_id }, transaction = null) { // El parámetro es tipos_entrada_id
     const tipoEntrada = await this.models.tipos_entrada.findByPk(tipos_entrada_id, { transaction });

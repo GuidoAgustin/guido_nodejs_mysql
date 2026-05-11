@@ -12,7 +12,7 @@ module.exports = {
     },
     dialectOptions: {
       bigNumberStrings: true,
-      timezone: '-00:00',
+      timezone: '-03:00',
     },
     define: {
       freezeTableName: 1,
