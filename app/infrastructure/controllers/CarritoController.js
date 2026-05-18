@@ -1,4 +1,4 @@
-const { getResponseCustom } = require('../libs/serviceUtil'); // Mantenemos el import que habías arreglado
+const { getResponseCustom } = require('../libs/serviceUtil');
 
 class CarritoController {
   constructor({ getMisCompras }) {
@@ -6,18 +6,28 @@ class CarritoController {
     this.getMisCompras = getMisCompras;
   }
 
-  async getCarrito(req, res, next) {
+  async getEntradasActivas(req, res, next) {
     try {
-      // 👇 EL ARREGLO MÁGICO ESTÁ ACÁ 👇
       const user_id = req.user.user_id || req.user.id;
-
-      const result = await this.getMisCompras.execute({ user_id });
-
+      const result = await this.getMisCompras.executeEntradasActivas({ user_id });
       res.status(200).send(getResponseCustom(200, result));
-      res.end();
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
+  }
+
+  async getTiendaActiva(req, res, next) {
+    try {
+      const user_id = req.user.user_id || req.user.id;
+      const result = await this.getMisCompras.executeTiendaActiva({ user_id });
+      res.status(200).send(getResponseCustom(200, result));
+    } catch (error) { next(error); }
+  }
+
+  async getHistorial(req, res, next) {
+    try {
+      const user_id = req.user.user_id || req.user.id;
+      const result = await this.getMisCompras.executeHistorial({ user_id });
+      res.status(200).send(getResponseCustom(200, result));
+    } catch (error) { next(error); }
   }
 }
 
