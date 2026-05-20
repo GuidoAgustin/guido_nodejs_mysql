@@ -12,9 +12,9 @@ class CreateEvento {
     lugar_direccion,
     categoria,
     imagen_url,
-    estado_evento
+    estado_evento,
+    vender_durante_evento // <-- NUEVO
   }) {
-    // delega al repositorio, usando los campos reales
     const evento = await this.$eventos.create({
       nombre_evento,
       descripcion,
@@ -24,7 +24,8 @@ class CreateEvento {
       lugar_direccion,
       categoria,
       imagen_url,
-      estado_evento
+      estado_evento,
+      vender_durante_evento // <-- NUEVO
     });
     return evento;
   }

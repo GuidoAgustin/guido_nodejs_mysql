@@ -55,6 +55,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM('proximamente', 'disponible', 'agotado', 'pasado', 'cancelado'),
         allowNull: false,
       },
+      vender_durante_evento: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false, // Por defecto, mantiene el comportamiento viejo (se corta al iniciar)
+      },
+      fecha_inicio_venta: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       fecha_creacion: {
         type: DataTypes.DATE,
         allowNull: false,

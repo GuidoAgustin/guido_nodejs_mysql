@@ -64,12 +64,12 @@
           lugar_direccion,
           categoria,
           estado_evento,
+          vender_durante_evento,
+          fecha_inicio_venta // <-- NUEVO
         } = req.body;
   
         let imagen_url = null;
         if (req.file) {
-          // Sirves luego la carpeta 'public/images' como estático:
-          //   app.use("/images", express.static("public/images"));
           imagen_url = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
         }
   
@@ -83,6 +83,8 @@
           categoria,
           imagen_url,
           estado_evento,
+          vender_durante_evento,
+          fecha_inicio_venta // <-- NUEVO
         });
   
         res.status(201).send(getResponseCustom(201, result));
@@ -95,33 +97,41 @@
     async update(req, res, next) {
       try {
         const { evento_id } = req.params;
-        const eventData = { ...req.body }; // Copia los campos de texto del body
+        const eventData = { ...req.body }; 
   
-        // Si se subió un nuevo archivo de imagen
+        // 1. Manejo de la Imagen (esto ya lo tenías)
         if (req.file) {
-          // Construye la URL para la nueva imagen. Ajusta según tu configuración de servidor de estáticos.
           eventData.imagen_url = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
         } else if (eventData.imagen_url === undefined && evento_id) {
-          // Si no se envía un nuevo archivo Y no se especifica 'imagen_url' en el body,
-          // significa que no se quiere cambiar la imagen. Eliminamos 'imagen_url' del payload
-          // para que el repositorio no intente actualizarla a 'undefined'.
-          // Si 'imagen_url' se envía explícitamente (ej. vacía para borrar, o una URL externa), se respetará.
           delete eventData.imagen_url;
         }
   
-  
-        // Aquí puedes agregar conversión de tipos si es necesario (ej. de string a número para campos específicos)
-        // Por ejemplo, si sabes que 'capacidad' debe ser un número:
-        // if (eventData.capacidad) eventData.capacidad = parseInt(eventData.capacidad, 10);
+        // 👇 2. NUEVO: LIMPIEZA DE DATOS (Casteo para MySQL) 👇
+        
+        // Convertimos fechas vacías a NULL real
+        if (eventData.fecha_hora_fin === '' || eventData.fecha_hora_fin === 'null' || !eventData.fecha_hora_fin) {
+          eventData.fecha_hora_fin = null;
+        }
+        if (eventData.fecha_inicio_venta === '' || eventData.fecha_inicio_venta === 'null' || !eventData.fecha_inicio_venta) {
+          eventData.fecha_inicio_venta = null;
+        }
+
+        // Convertimos el texto del switch a booleano real
+        if (eventData.vender_durante_evento === 'true') {
+            eventData.vender_durante_evento = true;
+        } else if (eventData.vender_durante_evento === 'false') {
+            eventData.vender_durante_evento = false;
+        }
+        
+        // 👆 FIN LIMPIEZA 👆
   
         const result = await this.updateEvento.execute({
           evento_id,
           eventDataFromController: eventData,
-          newImageFileDetails: req.file // Pasa info del archivo para que el servicio pueda manejar la imagen antigua
+          newImageFileDetails: req.file 
         });
   
         res.status(200).send(getResponseCustom(200, result));
-        // res.end(); // getResponseCustom podría ya hacer esto o send() lo hace.
       } catch (error) {
         next(error);
       }

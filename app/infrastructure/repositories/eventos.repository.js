@@ -63,7 +63,9 @@ class EventosRepository {
     lugar_direccion,
     categoria,
     imagen_url,
-    estado_evento
+    estado_evento,
+    vender_durante_evento,
+    fecha_inicio_venta // <-- NUEVO
   }) {
     const evento = await this.models.evento.create({
       nombre_evento,
@@ -74,7 +76,9 @@ class EventosRepository {
       lugar_direccion,
       categoria,
       imagen_url,
-      estado_evento
+      estado_evento,
+      vender_durante_evento,
+      fecha_inicio_venta // <-- NUEVO
     });
     return evento;
   }
