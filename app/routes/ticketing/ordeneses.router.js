@@ -5,7 +5,7 @@ const { authMiddleware } = require("../../infrastructure/middlewares/auth");
 const controllers = require("../../infrastructure/injectors");
 
 router.get("/", [authMiddleware], (req, res, next) =>
-  controllers.ordenesesController.index(req, res, next)
+  controllers.ordenesesController.list(req, res, next)
 );
 
 router.post("/", [authMiddleware], (req, res, next) =>

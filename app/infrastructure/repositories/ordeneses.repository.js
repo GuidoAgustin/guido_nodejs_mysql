@@ -7,10 +7,25 @@ class OrdenesesRepository {
   }
 
   async list() {
-    // Asumiendo que quieres ordenar por fecha de orden descendente
-    const ordenes = await this.models.orden.findAll({ // Usando this.models.orden
+    const ordenes = await this.models.orden.findAll({
       order: [['fecha_orden', 'DESC']],
-      include: [{ model: this.models.user, as: 'comprador', attributes: ['user_id', 'email', 'nombre'] }]
+      include: [
+        { 
+          model: this.models.user, 
+          as: 'comprador', 
+        },
+        { 
+          model: this.models.entradas_vendidas, 
+          as: 'itemsDeOrden',
+          include: [
+            {
+              model: this.models.tipos_entrada,
+              as: 'tipoEntrada',
+              include: [{ model: this.models.evento, as: 'eventoInfo' }]
+            }
+          ]
+        }
+      ]
     });
     return ordenes;
   }
