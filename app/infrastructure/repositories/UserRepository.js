@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { Op } = require('sequelize');
+const { Op, Sequelize } = require('sequelize'); 
 
 const CustomError = require('../../domain/exceptions/CustomError');
 
@@ -7,8 +7,6 @@ class UsersRepository {
   constructor(models) {
     this.models = models;
   }
-
-  // --- MÉTODOS EXISTENTES ---
 
   async getUserByEmail({ email, transaction }) {
     const user = await this.models.user.findOne({
@@ -28,7 +26,6 @@ class UsersRepository {
     return user;
   }
 
-  // Este actualiza SOLO password (lo tenías de antes)
   async updateUser({ user_id, password }) {
     await this.models.user.update({
       password: bcrypt.hashSync(password, 10),
@@ -37,7 +34,6 @@ class UsersRepository {
     });
   }
 
-  // Síncrono porque usa compareSync (CPU bound)
   checkPassword({ password, user_password }) {
     return bcrypt.compareSync(password, user_password);
   }
@@ -64,17 +60,34 @@ class UsersRepository {
 
     if (filters && filters.sort_by) {
       const direction = filters.sort_dir ? filters.sort_dir.toUpperCase() : 'ASC';
-      const validColumns = ['first_name', 'last_name', 'email', 'role', 'user_id'];
+      const validColumns = ['first_name', 'last_name', 'email', 'rol', 'user_id', 'totalSpent'];
       
       if (validColumns.includes(filters.sort_by)) {
-         order = [[filters.sort_by, direction]];
+         if (filters.sort_by === 'totalSpent') {
+            order = [[Sequelize.literal('totalSpent'), direction]];
+         } else {
+            order = [[filters.sort_by, direction]];
+         }
       }
     }
 
     const options = {
       where,
-      // eslint-disable-next-line object-shorthand
       order: order,
+      attributes: {
+        include: [
+          [
+            // 👇 ACÁ ESTÁ LA CORRECCIÓN EXACTA CON LOS NOMBRES DE TUS MODELOS
+            Sequelize.literal(`(
+              SELECT COALESCE(SUM(monto_total), 0)
+              FROM orden
+              WHERE orden.id_usuario = user.user_id
+                AND orden.estado_pago = 'pagado'
+            )`),
+            'totalSpent'
+          ]
+        ]
+      }
     };
 
     if (pagination && pagination.per_page) {
@@ -91,31 +104,20 @@ class UsersRepository {
   }
 
   async updateUserData({ user_id, data }) {
-    // Extraemos solo lo que permitimos editar para evitar inyecciones de campos raros
     const { first_name, last_name, email, rol } = data;
     
-    // Ejecutamos el update
     const [updatedRows] = await this.models.user.update({
       first_name,
       last_name,
       email,
-      rol // Asegúrate de que tu modelo tenga la columna 'role' o 'rol'
+      rol
     }, {
       where: { user_id }
     });
 
-    if (updatedRows === 0) {
-        // Opcional: Si no se actualizó nada, podría ser que el ID no exista
-        // o que los datos sean idénticos.
-    }
-
-    // Devolvemos el usuario actualizado recargándolo de la BD
     return this.getUserById({ user_id });
   }
 
-  /**
-   * Elimina un usuario físicamente de la base de datos
-   */
   async deleteUser({ user_id }) {
     const deleted = await this.models.user.destroy({
       where: { user_id }
@@ -126,6 +128,6 @@ class UsersRepository {
     return true;
   }
 
-} // <--- CIERRE DE LA CLASE
+}
 
 module.exports = UsersRepository;
