@@ -1,7 +1,7 @@
 class GetMisCompras {
   constructor({ ordenesRepository, entradasVendidasRepository, tiposEntradaRepository, eventoRepository }) {
-    this.$ordenes = ordenesRepository;
-    this.$entradasVendidas = entradasVendidasRepository;
+    this.$ordenes = ordenesRepository.models.orden;
+    this.$entradasVendidas = entradasVendidasRepository.models.entradas_vendidas;
     this.$tiposEntrada = tiposEntradaRepository;
     this.$evento = eventoRepository;
     
