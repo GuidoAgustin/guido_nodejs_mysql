@@ -91,13 +91,13 @@ class ReportesService {
     }
     if (averageOccupancy > 100) averageOccupancy = 100;
 
-    // ---------------------------------------------------------
-    // 7. 🏆 EL MEJOR EVENTO
+   // ---------------------------------------------------------
+    // 7. 🏆 EL MEJOR EVENTO (🔐 BLINDADO CONTRA INYECCIÓN SQL)
     // ---------------------------------------------------------
     let topEventName = "Sin datos";
     let topEventRevenue = 0;
 
-    const queryRanking = `
+    let queryRanking = `
       SELECT e.nombre_evento, SUM(ev.precio_pagado) as total_recaudado
       FROM entradas_vendidas ev
       INNER JOIN orden o ON ev.id_orden = o.id_orden
@@ -105,14 +105,22 @@ class ReportesService {
       INNER JOIN evento e ON te.id_evento = e.evento_id
       WHERE ev.estado_entrada IN ('valida', 'utilizada')
       AND o.estado_pago = 'pagado'
-      ${(cleanStart && cleanEnd) ? `AND o.fecha_orden BETWEEN '${cleanStart} 00:00:00' AND '${cleanEnd} 23:59:59'` : ''}
-      GROUP BY e.evento_id, e.nombre_evento
-      ORDER BY total_recaudado DESC
-      LIMIT 1;
     `;
+    
+    // Armamos los parámetros seguros
+    const replacements = {};
+
+    if (cleanStart && cleanEnd) {
+      queryRanking += ` AND o.fecha_orden BETWEEN :start AND :end`;
+      replacements.start = `${cleanStart} 00:00:00`;
+      replacements.end = `${cleanEnd} 23:59:59`;
+    }
+
+    queryRanking += ` GROUP BY e.evento_id, e.nombre_evento ORDER BY total_recaudado DESC LIMIT 1;`;
 
     try {
-      const [resultados] = await db.sequelize.query(queryRanking);
+      // Sequelize ahora sanitiza las variables :start y :end automáticamente
+      const [resultados] = await db.sequelize.query(queryRanking, { replacements });
       if (resultados && resultados.length > 0) {
         topEventName = resultados[0].nombre_evento;
         topEventRevenue = resultados[0].total_recaudado;

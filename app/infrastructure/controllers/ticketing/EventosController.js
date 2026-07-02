@@ -18,21 +18,10 @@
 
     async list(req, res, next) {
       try {
-        const result = await this.getEventosList.execute({
-        evento_id: req.body.evento_id,
-        nombre_evento: req.body.nombre_evento,
-        descripcion: req.body.descripcion,
-        fecha_hora_inicio: req.body.fecha_hora_inicio,    
-        fecha_hora_fin: req.body.fecha_hora_fin,
-        lugar_nombre: req.body.lugar_nombre,
-        lugar_direccion: req.body.lugar_direccion,
-        categoria: req.body.categoria,
-        imagen_url: req.body.imagen_url,
-        estado_evento: req.body.estado_evento
-      });
+        // 🔥 FIX: En los GET la data viaja por URL (req.query), no por req.body
+        const result = await this.getEventosList.execute(req.query);
 
         res.status(200).send(getResponseCustom(200, result));
-        res.end();
       } catch (error) {
         next(error);
       }

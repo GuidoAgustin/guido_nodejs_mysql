@@ -1,36 +1,29 @@
 // backend/app/routes/tipos_entradas.router.js
 const express = require("express");
-
 const router = express.Router();
 const controllers = require("../../infrastructure/injectors");
-const { authMiddleware } = require("../../infrastructure/middlewares/auth");
+// 👇 Agregamos adminMiddleware
+const { authMiddleware, adminMiddleware } = require("../../infrastructure/middlewares/auth");
 
-// Listar todos los tipos (GET /tipos_entradas)
-router.get("/", [], (req, res, next) =>
-  controllers.tiposEntradasController.list(req, res, next)
-);
+// Listar todos los tipos (PÚBLICO)
+router.get("/", [], (req, res, next) => controllers.tiposEntradasController.list(req, res, next));
 
-// Crear un tipo (POST /tipos_entradas)
-router.post("/", [authMiddleware], (req, res, next) =>
+// Crear un tipo (🔒 SOLO ADMIN)
+router.post("/", [authMiddleware, adminMiddleware], (req, res, next) => // <-- Doble candado
   controllers.tiposEntradasController.create(req, res, next)
 );
 
-// Detalle de un tipo (GET /tipos_entradas/:tipos_entrada_id)
-router.get("/:tipos_entrada_id", [], (req, res, next) =>
-  controllers.tiposEntradasController.show(req, res, next)
-);
+// Detalle de un tipo (PÚBLICO)
+router.get("/:tipos_entrada_id", [], (req, res, next) => controllers.tiposEntradasController.show(req, res, next));
 
-// Actualizar un tipo (PUT /tipos_entradas/:tipos_entrada_id)
-router.put("/:tipos_entrada_id", [authMiddleware], (req, res, next) =>
+// Actualizar un tipo (🔒 SOLO ADMIN)
+router.put("/:tipos_entrada_id", [authMiddleware, adminMiddleware], (req, res, next) => // <-- Doble candado
   controllers.tiposEntradasController.update(req, res, next)
 );
 
-// Borrar un tipo (DELETE /tipos_entradas/:tipos_entrada_id)
-router.delete("/:tipos_entrada_id", [authMiddleware], (req, res, next) =>
+// Borrar un tipo (🔒 SOLO ADMIN)
+router.delete("/:tipos_entrada_id", [authMiddleware, adminMiddleware], (req, res, next) => // <-- Doble candado
   controllers.tiposEntradasController.delete(req, res, next)
 );
 
-module.exports = {
-  basePath: "/tipos_entradas",
-  router,
-};
+module.exports = { basePath: "/tipos_entradas", router };

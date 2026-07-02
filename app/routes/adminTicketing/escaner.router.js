@@ -1,13 +1,10 @@
 const express = require("express");
 const router = express.Router();
-
-// Importamos al Encargado (El Controlador del Patovica)
 const EscanerController = require("../../infrastructure/controllers/adminTicketing/escaner.controller");
+// 🛡️ IMPORTAMOS LA SEGURIDAD
+const { authMiddleware, adminMiddleware } = require("../../infrastructure/middlewares/auth");
 
-// El router recibe el código QR por POST y delega el trabajo al controlador
-router.post("/admin/escaner/validar", EscanerController.validarTicket);
+// 🔥 DOBLE CANDADO ACTIVADO (Solo los admins/staff pueden escanear)
+router.post("/admin/escaner/validar", [authMiddleware, adminMiddleware], EscanerController.validarTicket);
 
-module.exports = {
-  basePath: '/',
-  router,
-};
+module.exports = { basePath: '/', router };

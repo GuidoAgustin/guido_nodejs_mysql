@@ -9,7 +9,6 @@ const {
   GetOrdenesesList,
   ShowOrdenes,
   CreateOrdenes,
-  UpdateOrdenes,
   DeleteOrdenes,
 } = require('../../application/Ticketing/ordeneses');
 const OrdenesesController = require('../controllers/ticketing/OrdenesesController');
@@ -29,14 +28,12 @@ module.exports = function registerController({ models, sequelize }) {
     sequelize
   ); 
   const showOrdenes = new ShowOrdenes(ordenesesRepository);
-  const updateOrdenes = new UpdateOrdenes(ordenesesRepository);
   const deleteOrdenes = new DeleteOrdenes(ordenesesRepository);
 
   return new OrdenesesController({
     getOrdenesesList,
     createOrdenes,
     showOrdenes,
-    updateOrdenes,
     deleteOrdenes,
   });
 };

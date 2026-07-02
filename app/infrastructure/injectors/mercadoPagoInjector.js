@@ -6,33 +6,38 @@ const ConfirmarPagoManual = require('../../application/mercadopago/ConfirmarPago
 const ProcesarWebhook = require('../../application/mercadopago/ProcesarWebhook'); 
 const CancelarPagoManual = require('../../application/mercadopago/CancelarPagoManual'); 
 
-// 2. Importamos el Repositorio de Stock
+// 2. Importamos los Repositorios REALES (Acá estaba el bug)
 const TiposEntradasRepository = require('../repositories/tipos_entradas.repository');
+const OrdenesesRepository = require('../repositories/ordeneses.repository');
+const EntradasVendidasesRepository = require('../repositories/entradas_vendidases.repository');
 const MercadoPagoController = require('../controllers/mercadopago/MercadoPagoController'); 
 
 module.exports = ({ models }) => {
-  // 💡 Instanciamos el repositorio primero para pasárselo a los que lo necesitan
+  // 💡 Instanciamos los repositorios pasándoles los models
   const tiposEntradasRepository = new TiposEntradasRepository(models);
+  const ordenesRepository = new OrdenesesRepository(models); // 🛠️ Fix
+  const entradasVendidasRepository = new EntradasVendidasesRepository(models); // 🛠️ Fix
 
-  // 3. Casos de Uso: Les damos sus herramientas (repos)
+  // 3. Casos de Uso: Les damos sus herramientas (los repositorios instanciados)
   const crearPreferencia = new CrearPreferencia({ 
-    ordenesRepository: models.orden 
+    ordenesRepository: ordenesRepository 
   });
   
   const confirmarPagoManual = new ConfirmarPagoManual({ 
-    ordenesRepository: models.orden 
+    ordenesRepository: ordenesRepository 
   });
 
   const procesarWebhook = new ProcesarWebhook({ 
-    ordenesRepository: models.orden,
-    entradasVendidasRepository: models.entradas_vendidas,
-    tiposEntradasRepository // 👈 Para devolver stock en el webhook
+    ordenesRepository: ordenesRepository,
+    entradasVendidasRepository: entradasVendidasRepository,
+    tiposEntradasRepository: tiposEntradasRepository, 
+    sequelize: models.sequelize // 🔥 EL PATOVICA: Le inyectamos la conexión para las transacciones
   }); 
 
   const cancelarPagoManual = new CancelarPagoManual({
-    ordenesRepository: models.orden,
-    entradasVendidasRepository: models.entradas_vendidas,
-    tiposEntradasRepository // 👈 Para devolver stock en la cancelación manual
+    ordenesRepository: ordenesRepository,
+    entradasVendidasRepository: entradasVendidasRepository,
+    tiposEntradasRepository: tiposEntradasRepository 
   });
 
   // 4. Inyectamos todo en el Controlador

@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
-// Importamos al Encargado
 const ReportesController = require("../../infrastructure/controllers/adminTicketing/reportes.controller");
+// 🛡️ IMPORTAMOS LA SEGURIDAD
+const { authMiddleware, adminMiddleware } = require("../../infrastructure/middlewares/auth");
 
-// El router solo delega el trabajo al controlador. ¡Arquitectura limpia pura!
-router.get("/admin/reportes", ReportesController.getReportesDashboard);
+// 🔥 DOBLE CANDADO ACTIVADO
+router.get("/admin/reportes", [authMiddleware, adminMiddleware], ReportesController.getReportesDashboard);
 
-module.exports = {
-  basePath: '/',
-  router,
-};
+module.exports = { basePath: '/', router };

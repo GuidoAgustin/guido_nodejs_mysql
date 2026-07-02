@@ -1,4 +1,3 @@
-// backend/app/application/ordeneses/CreateOrdenes.js
 const { v4: uuidv4 } = require("uuid");
 const CustomError = require("../../../domain/exceptions/CustomError");
 
@@ -7,13 +6,13 @@ class CreateOrdenes {
     ordenesRepository,
     entradasVendidasRepository,
     tiposEntradasRepository,
-    eventosRepository, // Recibir EventosRepository
+    eventosRepository,
     sequelize
   ) {
     this.ordenesRepository = ordenesRepository;
     this.entradasVendidasRepository = entradasVendidasRepository;
     this.tiposEntradasRepository = tiposEntradasRepository;
-    this.eventosRepository = eventosRepository; // Asignar
+    this.eventosRepository = eventosRepository;
     this.sequelize = sequelize;
   }
 
@@ -25,14 +24,17 @@ class CreateOrdenes {
       );
     }
 
+    // 🔥 EL FIX ANTI-DEADLOCK (Intacto)
+    items.sort((a, b) => a.id_tipo_entrada - b.id_tipo_entrada);
+
     const t = await this.sequelize.transaction();
-    let eventoIdParaVerificar = null; // Variable para guardar el ID del evento
+    let eventoIdParaVerificar = null;
 
     try {
       let montoTotalCalculado = 0;
       const itemsParaProcesarConPrecioReal = [];
 
-      // Verificar stock y obtener precios reales
+      // 1. Verificar stock y obtener precios reales
       for (const item of items) {
         const tipoEntrada = await this.tiposEntradasRepository.findById(
           item.id_tipo_entrada,
@@ -50,29 +52,31 @@ class CreateOrdenes {
         }
         if (tipoEntrada.cantidad_disponible < item.cantidad) {
           throw new CustomError(
-            `Stock insuficiente para "${tipoEntrada.nombre_tipo}". 
-            Disponibles: ${tipoEntrada.cantidad_disponible}, Solicitadas: ${item.cantidad}.`,
+            `Stock insuficiente para "${tipoEntrada.nombre_tipo}". Disponibles: ${tipoEntrada.cantidad_disponible}, Solicitadas: ${item.cantidad}.`,
             409
           );
         }
 
-        eventoIdParaVerificar = tipoEntrada.id_evento; // Guardar el ID del evento
+        eventoIdParaVerificar = tipoEntrada.id_evento;
         itemsParaProcesarConPrecioReal.push({
           ...item,
           precio_real_unitario: parseFloat(tipoEntrada.precio),
         });
         montoTotalCalculado += item.cantidad * parseFloat(tipoEntrada.precio);
       }
+      
+      // Aseguramos precisión de decimales para evitar bugs de coma flotante
       montoTotalCalculado = Math.round(montoTotalCalculado * 100) / 100;
 
-      // Crear la orden
+      // 2. Crear la orden
       const datosOrden = { id_usuario, monto_total: montoTotalCalculado };
       const nuevaOrden = await this.ordenesRepository.create(datosOrden, t);
 
-      // Crear las entradas vendidas
+      // 3. Crear las entradas vendidas (MODO TSUNAMI ACTIVADO 🌊)
+      const entradasACrear = [];
       for (const itemProcesado of itemsParaProcesarConPrecioReal) {
-        for (let i = 0; i < itemProcesado.cantidad;) {
-          const datosEntradaVendida = {
+        for (let i = 0; i < itemProcesado.cantidad; i++) {
+          entradasACrear.push({
             id_orden: nuevaOrden.id_orden,
             id_tipo_entrada: itemProcesado.id_tipo_entrada,
             codigo_unico: uuidv4(),
@@ -80,13 +84,14 @@ class CreateOrdenes {
             precio_pagado: itemProcesado.precio_real_unitario,
             nombre_asistente: nombre_comprador,
             email_asistente: email_comprador,
-          };
-          await this.entradasVendidasRepository.create(datosEntradaVendida, t);
-          i += 1;
+          });
         }
       }
+      
+      // ¡BUM! Un solo viaje a la base de datos
+      await this.entradasVendidasRepository.bulkCreate(entradasACrear, t);
 
-      // Actualizar el stock
+      // 4. Actualizar el stock
       for (const itemProcesado of itemsParaProcesarConPrecioReal) {
         await this.tiposEntradasRepository.decrementStock(
           itemProcesado.id_tipo_entrada,
@@ -97,7 +102,7 @@ class CreateOrdenes {
 
       await t.commit(); // Confirmar la transacción
 
-      // Verificar si el evento se agotó después del commit
+      // 5. Verificar si el evento se agotó
       if (eventoIdParaVerificar) {
         const todosLosTiposDelEvento = await this.tiposEntradasRepository.list({
           id_evento: eventoIdParaVerificar,
@@ -113,13 +118,12 @@ class CreateOrdenes {
             evento_id: eventoIdParaVerificar,
             updateData: datosParaActualizar,
           });
-          // console.log(`[CreateOrdenesService] Evento ID ${eventoIdParaVerificar} 
-          // actualizado a 'agotado'.`); // Log opcional
         }
       }
 
       // Devolver la orden creada con sus items asociados
       return this.ordenesRepository.show({ ordenes_id: nuevaOrden.id_orden });
+      
     } catch (error) {
       await t.rollback(); // Revertir todos los cambios si algo falla
       if (error instanceof CustomError) throw error;

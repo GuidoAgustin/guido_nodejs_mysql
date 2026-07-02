@@ -113,15 +113,20 @@ class TiposEntradasRepository {
    * @param {object} [transaction=null] - Transacción opcional.
    */
   async incrementStock(id_tipo_entrada, cantidadAIncrementar, transaction = null) {
-    const tipoEntrada = await this.models.tipos_entrada.findByPk(id_tipo_entrada, { transaction });
+    // Opciones base
+    const options = transaction ? { transaction, lock: transaction.LOCK.UPDATE } : {};
+    
+    const tipoEntrada = await this.models.tipos_entrada.findByPk(id_tipo_entrada, options);
     
     if (!tipoEntrada) {
       throw new CustomError(`Tipo de entrada con ID ${id_tipo_entrada} no encontrado para devolver stock.`, 404);
     }
 
-    // Devolvemos las entradas a la góndola
+    // Devolvemos las entradas a la góndola de forma atómica
     tipoEntrada.cantidad_disponible += cantidadAIncrementar;
-    await tipoEntrada.save({ transaction });
+    
+    // Si pasamos transaction en options, también hay que pasarlo al guardar
+    await tipoEntrada.save({ transaction }); 
     return tipoEntrada;
   }
 

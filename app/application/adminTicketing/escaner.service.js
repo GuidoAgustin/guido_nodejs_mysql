@@ -9,10 +9,20 @@ class EscanerService {
       const codigo_limpio = codigo_recibido.trim();
 
       // 1. Buscamos la entrada inteligente (Que el código empiece con lo que se escaneó/tipeó)
+      // 🔥 ESCUDO: Exigimos que tipeen el código corto completo (mínimo 6 caracteres)
+      if (codigo_limpio.length < 6) {
+        return { 
+          valido: false, 
+          color: 'negro', 
+          mensaje: 'CÓDIGO INVÁLIDO: El código ingresado es demasiado corto.' 
+        };
+      }
+
+      // 1. Buscamos la entrada inteligente (Ahora es 100% seguro usar LIKE)
       const entrada = await db.entradas_vendidas.findOne({
         where: {
           codigo_unico: {
-            [Op.like]: `${codigo_limpio}%` // El '%' hace la magia: "Que empiece con esto y siga con cualquier cosa"
+            [Op.like]: `${codigo_limpio}%` 
           }
         },
         include: [{

@@ -30,30 +30,105 @@ class OrdenesesRepository {
     return ordenes;
   }
 
-  async show({ ordenes_id }) { // El parámetro es 'ordenes_id', pero la PK es 'id_orden'
-    const orden = await this.models.orden.findByPk(ordenes_id, { // Usando this.models.orden
+  // 🔥 MODO TSUNAMI: Trae la data pre-formateada y plana para el Dashboard
+  async listForDashboard() {
+    const ordenes = await this.models.orden.findAll({
+      attributes: [
+        ['id_orden', 'id'],
+        ['monto_total', 'total'],
+        ['fecha_orden', 'date'],
+        ['estado_pago', 'status']
+      ],
+      order: [['fecha_orden', 'DESC']],
       include: [
-        { model: this.models.user, as: 'comprador' },
-        { model: this.models.entradas_vendidas, as: 'itemsDeOrden', 
-          include: [{model: this.models.tipos_entrada, as: 'tipoEntrada'}] } // Ejemplo anidado
+        { 
+          model: this.models.user, 
+          as: 'comprador',
+          attributes: [
+            ['email', 'email'],
+            ['first_name', 'nombre'], 
+            ['last_name', 'apellido']
+          ]
+        },
+        { 
+          model: this.models.entradas_vendidas, 
+          as: 'itemsDeOrden',
+          attributes: ['id_entrada_vendida'], 
+          include: [
+            {
+              model: this.models.tipos_entrada,
+              as: 'tipoEntrada',
+              attributes: ['id_tipo_entrada'],
+              include: [{ 
+                model: this.models.evento, 
+                as: 'eventoInfo',
+                attributes: ['nombre_evento'] 
+              }]
+            }
+          ]
+        }
       ]
     });
-    if (!orden) throw new CustomError('Orden no encontrada', 404); // Mensaje en español
-    return orden;
+
+    return ordenes.map(orden => {
+      const o = orden.toJSON();
+      const comp = o.comprador || {};
+      const nombreCliente = `${comp.nombre || ''} ${comp.apellido || ''}`.trim() || comp.email || 'Anónimo';
+
+      let nombreEvento = 'Evento Desconocido';
+      if (o.itemsDeOrden && o.itemsDeOrden.length > 0) {
+        const primerItem = o.itemsDeOrden[0];
+        if (primerItem.tipoEntrada && primerItem.tipoEntrada.eventoInfo) {
+          nombreEvento = primerItem.tipoEntrada.eventoInfo.nombre_evento;
+        }
+      }
+
+      return {
+        id: o.id,
+        eventName: nombreEvento,
+        customerName: nombreCliente,
+        quantity: o.itemsDeOrden ? o.itemsDeOrden.length : 0,
+        total: parseFloat(o.total || 0).toFixed(2),
+        date: o.date, 
+        status: o.status || 'Desconocido'
+      };
+    });
   }
 
   /**
-   * Crea una nueva orden.
-   * @param {object} datosOrden - Objeto con los datos de la orden a crear.
-   * @param {object} [transaction=null] - Transacción opcional de Sequelize.
-   * @returns {Promise<Model>} La instancia de la orden creada.
+   * 🔥 MODO TSUNAMI: Busca la orden y aplica BLOQUEO DE FILA para evitar pagos duplicados
    */
+  async findByIdWithItems(id_orden, { transaction, lock }) {
+    const orden = await this.models.orden.findOne({
+      where: { id_orden: id_orden },
+      include: [
+        {
+          model: this.models.entradas_vendidas,
+          as: 'itemsDeOrden'
+        }
+      ],
+      transaction,
+      lock 
+    });
+    return orden;
+  }
+
+  async show({ ordenes_id }) { 
+    const orden = await this.models.orden.findByPk(ordenes_id, { 
+      include: [
+        { model: this.models.user, as: 'comprador' },
+        { model: this.models.entradas_vendidas, as: 'itemsDeOrden', 
+          include: [{model: this.models.tipos_entrada, as: 'tipoEntrada'}] } 
+      ]
+    });
+    if (!orden) throw new CustomError('Orden no encontrada', 404); 
+    return orden;
+  }
+
   async create(datosOrden, transaction = null) {
     console.log('[OrdenesRepo] Creando orden con datos:', datosOrden);
     try {
-      // datosOrden debe contener: id_usuario, monto_total
-      // fecha_orden y estado_pago tendrán valores por defecto.
-      const nuevaOrden = await this.models.orden.create(datosOrden, { transaction }); // Usando this.models.orden
+      const nuevaOrden = await this.models.orden.create(datosOrden, { transaction }); 
       console.log('[OrdenesRepo] Orden creada:', nuevaOrden.toJSON());
       return nuevaOrden;
     } catch (error) {
@@ -62,23 +137,9 @@ class OrdenesesRepository {
     }
   }
 
-  // El método update también necesitaría ser adaptado si lo vas a usar
-  async update({ ordenes_id, datosAActualizar }, transaction = null) { // 'ordenes_id' vs 'id_orden'
-    console.log(`[OrdenesRepo] Actualizando orden ID ${ordenes_id} con datos:`, datosAActualizar);
-    const orden = await this.models.orden.findByPk(ordenes_id, { transaction }); // Usando this.models.orden
 
-    if (!orden) {
-      console.error(`[OrdenesRepo] Orden ID ${ordenes_id} no encontrada para actualizar.`);
-      throw new CustomError('Orden no encontrada', 404);
-    }
-    
-    await orden.update(datosAActualizar, { transaction });
-    console.log('[OrdenesRepo] Orden actualizada.');
-    return orden.reload({ transaction }); // Recargar para obtener el estado más reciente
-  }
-
-  async delete({ ordenes_id }) { // 'ordenes_id' vs 'id_orden'
-    const orden = await this.models.orden.findByPk(ordenes_id); // Usando this.models.orden
+  async delete({ ordenes_id }) { 
+    const orden = await this.models.orden.findByPk(ordenes_id); 
     if (!orden) throw new CustomError('Orden no encontrada', 404);
     await orden.destroy();
     return orden;

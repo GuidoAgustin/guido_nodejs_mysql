@@ -1,3 +1,4 @@
+// backend/app/infrastructure/controllers/ticketing/EntradasVendidasesController.js
 const { getResponseCustom } = require('../../libs/serviceUtil');
 
 // Librerías mágicas para el PDF
@@ -6,7 +7,7 @@ const QRCode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
 
-// 👇 1. IMPORTAMOS HASHIDS (El sastre que hace los disfraces)
+// 👇 IMPORTAMOS HASHIDS
 const Hashids = require('hashids/cjs');
 const hashids = new Hashids("GuidoTicketingSecret2026", 6, "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
 
@@ -14,21 +15,16 @@ class EntradasVendidasesController {
   constructor({
     getEntradasVendidasesList,
     showEntradasVendidas,
-    createEntradasVendidas,
-    updateEntradasVendidas,
-    deleteEntradasVendidas,
     getTicketByCodigo,
   }) {
     this.name = 'entradasVendidasesController';
     this.getEntradasVendidasesList = getEntradasVendidasesList;
     this.showEntradasVendidas = showEntradasVendidas;
-    this.createEntradasVendidas = createEntradasVendidas;
-    this.updateEntradasVendidas = updateEntradasVendidas;
-    this.deleteEntradasVendidas = deleteEntradasVendidas;
     this.getTicketByCodigo = getTicketByCodigo;
   }
 
-  async list(req, res, next) {
+  // Renombrado a 'index' o 'list' según como lo llames en el router
+  async index(req, res, next) {
     try {
       const result = await this.getEntradasVendidasesList.execute();
       res.status(200).send(getResponseCustom(200, result));
@@ -45,47 +41,17 @@ class EntradasVendidasesController {
     } catch (error) { next(error); }
   }
 
-  async create(req, res, next) {
-    try {
-      const { column_1, column_2 } = req.body;
-      const result = await this.createEntradasVendidas.execute({ column_1, column_2 });
-      res.status(200).send(getResponseCustom(200, result));
-      res.end();
-    } catch (error) { next(error); }
-  }
-
-  async update(req, res, next) {
-    try {
-      const { entradas_vendidas_id } = req.params;
-      const { column_1, column_2 } = req.body;
-      const result = await this.updateEntradasVendidas.execute({ entradas_vendidas_id, column_1, column_2 });
-      res.status(200).send(getResponseCustom(200, result));
-      res.end();
-    } catch (error) { next(error); }
-  }
-
-  async delete(req, res, next) {
-    try {
-      const { entradas_vendidas_id } = req.params;
-      const result = await this.deleteEntradasVendidas.execute({ entradas_vendidas_id });
-      res.status(200).send(getResponseCustom(200, result));
-      res.end();
-    } catch (error) { next(error); }
-  }
-
   // =================================================================
-  // 🎟️ DESCARGAR PDF (AHORA CON CÓDIGO ENCRIPTADO)
+  // 🎟️ DESCARGAR PDF (INTACTO, ES UNA OBRA DE ARTE)
   // =================================================================
   async downloadTicket(req, res, next) {
     try {
       const { codigo_unico } = req.params;
       
-      // Armamos un código cortito y fácil de leer para el humano (ej: CA19BC80)
       const codigo_corto = codigo_unico.split('-')[0].toUpperCase();
 
       const entrada = await this.getTicketByCodigo.execute({ codigo_unico });
 
-      // El QR guarda el código largo y ultra seguro para que la cámara no falle
       const qrBuffer = await QRCode.toBuffer(codigo_unico, {
         width: 120, margin: 0, color: { dark: '#000000', light: '#ffffff' }
       });
@@ -132,7 +98,6 @@ class EntradasVendidasesController {
 
       doc.image(qrBuffer, 465, 30, { width: 120 });
 
-      // 👇 Acotamos el texto para que el humano lo pueda tipear fácil
       doc.fill('#333333').fontSize(9).text('CÓDIGO MANUAL:', 450, 165, { width: 150, align: 'center' });
       doc.fontSize(18).text(codigo_corto, 450, 180, { width: 150, align: 'center' });
 

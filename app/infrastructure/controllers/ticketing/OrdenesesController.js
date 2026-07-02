@@ -88,21 +88,6 @@ class OrdenesesController {
     }
   }
 
-  async update(req, res, next) {
-    try {
-      const { ordenes_id } = req.params;
-      const datosAActualizar = req.body;
-
-      const result = await this.updateOrdenes.execute({
-        ordenes_id,
-        datosParaActualizar: datosAActualizar,
-      });
-      res.status(200).send(getResponseCustom(200, result));
-    } catch (error) {
-      next(error);
-    }
-  }
-
   async delete(req, res, next) {
     try {
       const { ordenes_id } = req.params;
