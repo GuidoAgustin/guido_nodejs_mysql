@@ -39,7 +39,8 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       rol: {
-        type: DataTypes.STRING,
+        // 🔥 Reemplazamos STRING por ENUM con la lista exacta permitida
+        type: DataTypes.ENUM('usuario', 'admin', 'portero'),
         allowNull: false,
         defaultValue: 'usuario',
       },
