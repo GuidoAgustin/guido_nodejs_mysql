@@ -10,6 +10,8 @@ const {
 } = require("../../application/users");
 
 const UsersController = require("../controllers/UsersController");
+const ForgotPassword = require("../../application/users/ForgotPassword");
+const ResetPassword = require("../../application/users/ResetPassword");
 
 // INSTANCES
 const loginUser = new LoginUser({
@@ -36,12 +38,24 @@ const adminDeleteUser = new AdminDeleteUser({
   usersRepository,
 });
 
+const forgotPassword = new ForgotPassword({
+  usersRepository,
+  validator,
+});
+
+const resetPassword = new ResetPassword({
+  usersRepository,
+  validator,
+});
+
 const usersController = new UsersController({
   loginUser,
   updateUserProfile,
   getAllUsers,
   adminUpdateUser,
   adminDeleteUser,
+  forgotPassword,
+  resetPassword,
 });
 
 module.exports = {

@@ -28,9 +28,10 @@ class UsersRepository {
 
   async updateUser({ user_id, password }) {
     await this.models.user.update({
-      password: bcrypt.hashSync(password, 10),
+      password: password, // 🔥 ACÁ ESTABA EL BUG. Le sacamos el bcrypt para que pase limpia.
     }, {
       where: { user_id },
+      individualHooks: true // Le avisa a Sequelize que dispare la encriptación del modelo
     });
   }
 

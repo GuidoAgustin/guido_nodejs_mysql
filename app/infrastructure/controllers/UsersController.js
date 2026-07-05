@@ -3,13 +3,24 @@ const models = require("../../models");
 const validate = require("../libs/validate");
 
 class UsersController {
-  constructor({ loginUser, updateUserProfile, getAllUsers, adminUpdateUser, adminDeleteUser }) {
+  // 👇 1. Agregamos forgotPassword al constructor
+  constructor({
+    loginUser,
+    updateUserProfile,
+    getAllUsers,
+    adminUpdateUser,
+    adminDeleteUser,
+    forgotPassword,
+    resetPassword,
+  }) {
     this.name = "UsersController";
     this.loginUser = loginUser;
     this.updateUserProfile = updateUserProfile;
-    this.getAllUsersUseCase = getAllUsers; 
+    this.getAllUsersUseCase = getAllUsers;
     this.adminUpdateUser = adminUpdateUser;
     this.adminDeleteUser = adminDeleteUser;
+    this.forgotPasswordUseCase = forgotPassword; // 👇 Lo guardamos
+    this.resetPasswordUseCase = resetPassword;
   }
 
   async login(req, res, next) {
@@ -66,7 +77,7 @@ class UsersController {
           "email.email": "El email no es válido",
           "required.password": "La contraseña es obligatoria",
           "min.password": "La contraseña debe tener al menos 8 caracteres",
-        }
+        },
       );
 
       // Verificar si el email ya existe
@@ -94,7 +105,7 @@ class UsersController {
             last_name: newUser.last_name,
             email: newUser.email,
           },
-        })
+        }),
       );
     } catch (error) {
       console.error("Registro error:", error); // <-- Agrega esto para debug
@@ -116,44 +127,47 @@ class UsersController {
         }
       }
       // Si es otro error, enviar mensaje genérico
-      res
-        .status(500)
-        .send(
-          response.getResponseCustom(500, {
-            data: "No se ha podido registrar, intente de nuevo.",
-          })
-        );
+      res.status(500).send(
+        response.getResponseCustom(500, {
+          data: "No se ha podido registrar, intente de nuevo.",
+        }),
+      );
     }
   }
 
-    async getAllUsers(req, res, next) {
+  async getAllUsers(req, res, next) {
     try {
       const { ids, search, page, per_page, sort_by, sort_dir } = req.query;
       const filters = {};
       if (ids) {
         filters.ids = ids
-          .split(',')
+          .split(",")
           .map((s) => parseInt(s, 10))
           .filter(Boolean);
       }
       if (search) filters.search = search;
 
       if (sort_by) filters.sort_by = sort_by;
-    if (sort_dir) filters.sort_dir = sort_dir;
+      if (sort_dir) filters.sort_dir = sort_dir;
 
       const pagination = {};
       if (per_page) pagination.per_page = parseInt(per_page, 10);
       if (page) pagination.page = parseInt(page, 10);
 
-      const result = await this.getAllUsersUseCase.execute({ filters, pagination });
+      const result = await this.getAllUsersUseCase.execute({
+        filters,
+        pagination,
+      });
 
       // ← Devolver total + data
-      res.status(200).send(response.getResponseCustom(200, {
-        data: result.users,
-        total: result.total,
-        per_page: pagination.per_page || 10,
-        current_page: pagination.page || 1
-      }));
+      res.status(200).send(
+        response.getResponseCustom(200, {
+          data: result.users,
+          total: result.total,
+          per_page: pagination.per_page || 10,
+          current_page: pagination.page || 1,
+        }),
+      );
       res.end();
     } catch (error) {
       next(error);
@@ -181,7 +195,46 @@ class UsersController {
       // Ejecutamos el Caso de Uso Limpio
       await this.adminDeleteUser.execute({ user_id: id });
 
-      res.status(200).send(response.getResponseCustom(200, { message: 'Usuario eliminado correctamente' }));
+      res
+        .status(200)
+        .send(
+          response.getResponseCustom(200, {
+            message: "Usuario eliminado correctamente",
+          }),
+        );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // 👇 2. NUEVO MÉTODO PARA ENVIAR EL CORREO MAGICO
+  async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      const result = await this.forgotPasswordUseCase.execute({ email });
+
+      res.status(200).send(response.getResponseCustom(200, result));
+      res.end();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // 👇 MÉTODO PARA GUARDAR LA NUEVA CONTRASEÑA
+  async resetPassword(req, res, next) {
+    try {
+      const { token } = req.params;
+      const { password, password_confirmation } = req.body;
+      
+      const result = await this.resetPasswordUseCase.execute({ 
+        token, 
+        password, 
+        password_confirmation 
+      });
+      
+      res.status(200).send(response.getResponseCustom(200, result));
+      res.end();
     } catch (error) {
       next(error);
     }
