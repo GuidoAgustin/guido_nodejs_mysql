@@ -137,7 +137,10 @@ class OrdenesesRepository {
     }
   }
 
-
+async findOne(options) {
+    const orden = await this.models.orden.findOne(options);
+    return orden;
+  }
   async delete({ ordenes_id }) { 
     const orden = await this.models.orden.findByPk(ordenes_id); 
     if (!orden) throw new CustomError('Orden no encontrada', 404);

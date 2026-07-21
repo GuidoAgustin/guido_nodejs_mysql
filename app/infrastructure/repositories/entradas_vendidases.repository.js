@@ -81,6 +81,13 @@ class EntradasVendidasesRepository {
     }
   }
 
+  async findByOrdenId(id_orden) {
+    const entradas = await this.models.entradas_vendidas.findAll({
+      where: { id_orden: id_orden }
+    });
+    return entradas;
+  }
+
   async update({ entradas_vendidas_id, datosAActualizar }, transaction = null) {
     const entradaVendida = await this.models.entradas_vendidas.findByPk(entradas_vendidas_id, { transaction });
     if (!entradaVendida) {
